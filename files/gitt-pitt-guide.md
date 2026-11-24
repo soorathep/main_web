@@ -19,7 +19,7 @@ you the **chemical (apparent) diffusion coefficient** of the working ion in the 
 | Chemical diffusion coefficient D vs SOC | ✔ | ✔ |
 | Equilibrium potential / OCV vs SOC (thermodynamics) | ✔ (rest voltage) | ✔ (from step charges) |
 | Overpotential &amp; internal resistance vs SOC | ✔ | — (indirect) |
-| Distinguish solid-solution vs two-phase reaction | partly (D dip) | ✔ (current-transient shape) |
+| Clues to a change in reaction mechanism | indirect | indirect (current-transient shape) |
 | Fine resolution near a phase transition / plateau | coarse | ✔ |
 | Time to run | very long (hours–weeks) | long, often faster than GITT |
 
@@ -92,23 +92,25 @@ each pulse, extracts E1–E4, computes D vs SOC, and plots it; run `python gitt_
 - Run charge and discharge over the full window.
 
 ### How to calculate D (current transient of each step)
-The current after a step decays; fit **one of the two limits** (you need the diffusion length L):
+**Long-time diffusion limit:** fit the linear region of `ln|I|` versus time, after faster
+modes have decayed and before background current or noise dominates. If the slope is `s`:
 
 ```
-  Long time  (t ≳ L²/D):   ln I(t) = const − (π² D / 4L²) · t
-                           → plot ln I vs t, take the linear-tail slope s
-                           →  D = −(4 L² / π²) · s
-
-  Short time (t ≪ L²/D):   I(t) ∝ t^(−1/2)      (Cottrell)
-                           → plot I vs t^(−1/2); slope with ΔQ and L gives D
+One-sided planar film (thickness L; blocking back): s = −π²D/(4L²) → D = −4L²s/π²
+Homogeneous sphere (radius R; fixed surface):       s = −π²D/R²     → D = −R²s/π²
 ```
 
-- `L` = characteristic **diffusion length** (e.g. particle radius, or film thickness) — see caveats.
+Both limits assume a small step, single-phase diffusion with nearly constant D,
+a fixed surface concentration after the step, and negligible charge-transfer and ohmic limitations.
+Use the length for the stated geometry. At short times, a diffusion-controlled current may
+follow `|I| ∝ t^(−1/2)` (Cottrell); obtaining D from that slope also requires a
+geometry-appropriate relation between current, incremental charge and diffusion length.
 
-### Bonus: reaction mechanism from the transient shape
-- **Solid-solution** insertion → current **decays monotonically** (Cottrell-like).
-- **Two-phase** reaction → current **rises then falls** (a bell), as a phase boundary sweeps through.
-PITT resolves this far better than GITT, which is why it is preferred around plateaus.
+**Script limitation (`gitt_pitt.py`):** The current script uses only the one-sided planar-film prefactor for PITT. Do not use a particle radius as its input length. Its synthetic demo has a prescribed dip in D.
+
+### What the transient can tell you
+The transient shape or a dip in apparent D can suggest a change worth investigating, but neither identifies a phase transition without independent evidence.
+Interfacial kinetics, ohmic drop or geometry can also distort the apparent D.
 
 ---
 
@@ -116,9 +118,8 @@ PITT resolves this far better than GITT, which is why it is preferred around pla
 
 - [ ] Technique, **pulse/step size**, **pulse/step duration**, **rest criterion** (the dV/dt or
   current cut-off you used), **temperature**, and direction (charge/discharge).
-- [ ] Every quantity in the equation: **m_B, M_B, V_M, S** (GITT) or **L** (PITT) — and **how you
-  got S / L** (geometric area? BET? particle radius from SEM/PSD?).
-- [ ] A **representative single step** (E–t, and E–√t for GITT / ln I–t for PITT) to justify the
+- [ ] Every quantity in the equation, including **m_B, M_B, V_M, S** for GITT or the **geometry and length (L or R)** for PITT, and how the area or length was determined.
+- [ ] A **representative single step** (E–t, and E–√t for GITT / ln|I|–t for PITT) to justify the
   linear-fit assumption.
 - [ ] **D vs SOC** for charge **and** discharge (log scale), not a single headline number.
 - [ ] Call D an **apparent / chemical** diffusion coefficient, and state the range, not one value.
@@ -132,14 +133,12 @@ PITT resolves this far better than GITT, which is why it is preferred around pla
   distribution and an unknown true active area `S`; using geometric vs BET area shifts D by **orders
   of magnitude**. The value is meaningful mainly for **relative** comparison of samples run under
   identical conditions.
-- **Phase-transition and conversion materials violate the assumptions** (single phase, small volume
-  change). Near a two-phase plateau the Weppner–Huggins D is unreliable — PITT's transient shape is
-  more informative there.
+- **Two-phase and conversion intervals violate the single-phase assumptions.** Do not interpret
+  a simple GITT or PITT fit there as a single-phase diffusion coefficient.
 - **`τ ≪ L²/D` must actually hold**; if the pulse is too long the √t linearity fails.
 - **Equilibrium must really be reached** during rest, or ΔE_s (and the OCV) is wrong. Conversion
   electrodes can need days.
-- GITT and PITT should **agree** if the physics is right; large disagreement means an assumption is
-  broken.
+- Before comparing GITT and PITT values, check the geometry, fit window and other model assumptions.
 
 ---
 
@@ -151,8 +150,9 @@ PITT resolves this far better than GITT, which is why it is preferred around pla
 2. **W. Weppner &amp; R. A. Huggins, *J. Electrochem. Soc.* 124, 1569 (1977).** The original GITT paper.
 3. Y. Zhu &amp; C. Wang, "Strain accommodation and potential hysteresis of LiFePO₄…" and related
    PITT analyses — for the two-phase transient shape.
-4. **J. Xie / X. Li et al., "Apparent diffusion coefficient of intercalated species measured with
-   PITT: a simple formulation," *Electrochim. Acta* 51, 1039 (2005).** Practical PITT formulas.
+4. **C. Montella, "Apparent diffusion coefficient of intercalated species measured with
+   PITT: A simple formulation," *Electrochim. Acta* 51, 3102–3111 (2006).**
+   https://doi.org/10.1016/j.electacta.2005.08.046. Discusses departures from ideal diffusion conditions.
 5. **A. J. Bard &amp; L. R. Faulkner, *Electrochemical Methods*, 2nd/3rd ed.** — Cottrell equation and
    diffusion fundamentals behind both techniques.
 6. **Cautionary reading:** papers titled *"Spurious chemical diffusion coefficients of Li⁺… GITT"*

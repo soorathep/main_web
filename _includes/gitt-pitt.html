@@ -11,7 +11,7 @@
       <tr><td>Diffusion coefficient D vs SOC</td><td>✔</td><td>✔</td></tr>
       <tr><td>Equilibrium potential / OCV (thermodynamics)</td><td>✔</td><td>✔</td></tr>
       <tr><td>Overpotential &amp; internal resistance</td><td>✔</td><td>indirect</td></tr>
-      <tr><td>Solid-solution vs two-phase reaction</td><td>partly</td><td>✔ (transient shape)</td></tr>
+      <tr><td>Clues to a change in reaction mechanism</td><td>indirect</td><td>indirect (transient shape)</td></tr>
       <tr><td>Resolution near a plateau</td><td>coarse</td><td>✔ fine</td></tr>
     </table>
   </div>
@@ -32,17 +32,19 @@
     <div class="bc-h">PITT — potentiostatic (small voltage steps → current decay)</div>
     <p><b>Run:</b> a staircase of small steps (ΔE ≪ 25 mV, typically 5–20 mV); hold each until the
     current decays to a cut-off, then step again. Integrate current per step → dQ/dE and OCV.</p>
-    <pre>Long time (t ≳ L²/D):   ln I(t) = const − (π²D / 4L²)·t   →   D = −(4L²/π²)·slope
-Short time (t ≪ L²/D):  I(t) ∝ t^(−1/2)   (Cottrell)     →   D from slope with ΔQ and L</pre>
-    <p class="gp-def">L = diffusion length (particle radius / film thickness). <b>Bonus:</b> current
-    decays monotonically for solid-solution insertion, but <b>rises then falls</b> for a two-phase
-    reaction — PITT reads mechanism near plateaus better than GITT.</p>
-    <p>The same script <code>gitt_pitt.py</code> runs a full PITT pipeline too — it splits the staircase
-    into steps, fits the exponential tail of each for D, and plots D vs potential (its demo produced the
-    figure below; note the dip where a phase transition slows diffusion).</p>
+    <p><b>Long-time diffusion limit:</b> fit the linear tail of ln|I| versus time after faster
+    modes have decayed, before background current or noise dominates. If the slope is s:</p>
+    <pre>One-sided planar film (thickness L; blocking back): s = −π²D/(4L²) → D = −4L²s/π²
+Homogeneous sphere (radius R; fixed surface):       s = −π²D/R²     → D = −R²s/π²</pre>
+    <p class="gp-def">Both limits assume a small step, single-phase diffusion with nearly constant D,
+    a fixed surface concentration after the step, and negligible charge-transfer and ohmic limitations.
+    At short times, a diffusion-controlled current may follow |I| ∝ t^(−1/2) (Cottrell);
+    obtaining D from that slope also requires a geometry-appropriate relation.</p>
+    <p>The transient shape or a dip in apparent D can suggest a change worth investigating, but neither identifies a phase transition without independent evidence.</p>
+    <p><code>gitt_pitt.py</code>: The current script uses only the one-sided planar-film prefactor for PITT. Do not use a particle radius as its input length. Its synthetic demo has a prescribed dip in D.</p>
     <figure class="gp-fig">
       <img src="{{ site.baseurl }}/img/resources/pitt-example.png" alt="PITT ln I fit and D vs potential" loading="lazy">
-      <figcaption>PITT: the long-time ln|I| fit of one step (left) and apparent D across potential
+      <figcaption>Synthetic planar-film PITT example: the long-time ln|I| fit of one step (left) and apparent D across potential
       (right), from <code>gitt_pitt.py</code>.</figcaption>
     </figure>
   </div>
@@ -67,16 +69,16 @@ D = (4 / π·600) · (2.77e-4)² · (8/40)²  ≈  6.5 × 10⁻¹²  cm² s⁻¹
     <div class="bc-h">Report &amp; caveats</div>
     <ul>
       <li>Report step size, duration, rest/cut-off criterion, temperature, direction, and <b>how you got S or L</b> (geometric vs BET vs particle size).</li>
-      <li>Show a representative single step (E–√t for GITT, ln I–t for PITT) and plot <b>D vs SOC</b> for charge and discharge — never one headline number.</li>
+      <li>Show a representative single step (E–√t for GITT, ln|I|–t for PITT) and plot <b>D vs SOC</b> for charge and discharge — never one headline number.</li>
       <li>The <b>absolute D can be wrong by orders of magnitude</b> (unknown true area / length); it is a <b>relative</b> measure. Call it <em>apparent / chemical</em> D.</li>
-      <li>Phase-transition &amp; conversion materials break the assumptions; GITT and PITT should agree if the physics is right.</li>
+      <li>The simple single-phase formulas are not valid across two-phase or conversion intervals. Check the fit window and geometry before comparing GITT and PITT.</li>
     </ul>
   </div>
 
   <p class="gp-refs"><b>References to read</b> (start with 1–2): (1) Kim, Park, Hwang &amp; Yoon,
   <em>J. Electrochem. Sci. Technol.</em> 13, 19 (2022) — open-access GITT review with full derivation;
   (2) Weppner &amp; Huggins, <em>J. Electrochem. Soc.</em> 124, 1569 (1977) — the original GITT;
-  (3) Li/Xie et al., <em>Electrochim. Acta</em> 51, 1039 (2005) — practical PITT;
+  (3) C. Montella, <em>Electrochim. Acta</em> 51, 3102–3111 (2006) — <a href="https://doi.org/10.1016/j.electacta.2005.08.046">apparent D in PITT</a>;
   (4) Bard &amp; Faulkner, <em>Electrochemical Methods</em> — Cottrell &amp; diffusion basics;
   (5) the "spurious diffusion coefficient" papers (Electrochim. Acta 2002, 2004) — why the absolute
   numbers can mislead. Full list in the download.</p>
